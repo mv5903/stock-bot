@@ -22,7 +22,7 @@ conn = sqlite3.connect(SQLITE_DATABASE_PATH)
 cur = conn.cursor()
 
 #Focus on small/mid-cap tech stocks
-MARKET_CAP_THRESHOLD = 2_000_000_000
+MARKET_CAP_THRESHOLD = int(os.getenv("MARKET_CAP_THRESHOLD"))
 cur.execute(f"SELECT symbol FROM tech_stocks WHERE market_cap >= {MARKET_CAP_THRESHOLD}")
 
 # Fetch all results

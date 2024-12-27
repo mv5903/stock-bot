@@ -8,9 +8,12 @@ from collections import Counter
 
 # Load environment variables
 load_dotenv()
+exchange = os.getenv("STOCK_EXCHANGE")
 
 # API configuration
-URL = "https://api.stockanalysis.com/api/screener/s/f?m=marketCap&s=desc&c=no,s,n,marketCap,sector&cn=0&f=exchange-is-NASDAQ&p=1&i=stocks&sc=marketCap"
+URL = f"https://api.stockanalysis.com/api/screener/s/f?m=marketCap&s=desc&c=no,s,n,marketCap,sector&cn=0&f=exchange-is-{exchange}&p=1&i=stocks&sc=marketCap"
+
+SECTOR = os.getenv("SECTOR")
 
 # SQLite configuration
 SQLITE_DATABASE_PATH = os.getenv("DB_PATH")
@@ -38,10 +41,9 @@ if duplicates:
         print(f"  {symbol}: {count} occurrences")
 
 # Filter for technology sector and deduplicate by 'symbol'
-tech_stocks = [stock for stock in data if stock.get("sector") == "Technology"]
+tech_stocks = [stock for stock in data if stock.get("sector") is not None and stock.get("sector").lower()  == SECTOR.lower()]
 unique_stocks = {stock["s"]: stock for stock in tech_stocks if stock.get("s")}.values()
-print(f"Found {len(tech_stocks)} technology stocks")
-print(f"Unique technology stocks after deduplication: {len(unique_stocks)}")
+print(f"Found {len(tech_stocks)} {SECTOR} stocks")
 
 # Connect to SQLite database
 conn = sqlite3.connect(SQLITE_DATABASE_PATH)

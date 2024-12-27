@@ -46,7 +46,7 @@ class DBSpider(scrapy.Spider):
         # Pass article_id along with the request
         count = 1
         for row in rows:
-            print(f"\rProcessing article {count}/{len(rows)} ({count / len(rows) * 100}%)", end="")
+            print(f"Processing article {count}/{len(rows)} ({count/len(rows)*100:.2f}%)", flush=True)
             count += 1
             row_id = row[0]
             url = row[1]
@@ -57,6 +57,20 @@ class DBSpider(scrapy.Spider):
             )
 
     def parse(self, response, article_id):
+        # Connect to the database
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Check if the article has already been analyzed
+        cursor.execute("SELECT article_id FROM sentiments WHERE article_id = ?", (article_id,))
+        result = cursor.fetchone()  # Fetch the first result, if any
+
+        if result:
+            # If the article is already in the database, skip further processing
+            self.logger.info(f"Article ID {article_id} has already been analyzed. Skipping...")
+            conn.close()
+            return
+
         # Extract main content using newspaper3k
         article = Article(response.url)
         article.set_html(response.text)
@@ -67,10 +81,6 @@ class DBSpider(scrapy.Spider):
         sid = SentimentIntensityAnalyzer()
         scores = sid.polarity_scores(full_text)
         overall_sentiment = self.interpret_sentiment(scores['compound'])
-
-        # Insert data into the database
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
 
         try:
             cursor.execute(
