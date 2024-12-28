@@ -56,10 +56,10 @@ def create_paper_trades_from_top_stocks(
 
 
 def get_current_price(stock_symbol):
-    current_price = 0
+    #current_price = 0
     stock = yf.Ticker(stock_symbol)
     current_price = stock.info.get("currentPrice", 0.0)
-    return current_price
+    return round(current_price, 2)
 
 
 def get_current_stocks_profit_loss(stock_symbols=None):
